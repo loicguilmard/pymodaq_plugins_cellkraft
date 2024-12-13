@@ -1,10 +1,10 @@
-pymodaq_plugins_template
+pymodaq_plugins_modbus
 ########################
 
 .. the following must be adapted to your developed package, links to pypi, github  description...
 
-.. image:: https://img.shields.io/pypi/v/pymodaq_plugins_template.svg
-   :target: https://pypi.org/project/pymodaq_plugins_template/
+.. image:: https://img.shields.io/pypi/v/pymodaq_plugins_modbus.svg
+   :target: https://pypi.org/project/pymodaq_plugins_modbus/
    :alt: Latest Version
 
 .. image:: https://readthedocs.org/projects/pymodaq/badge/?version=latest
@@ -12,11 +12,11 @@ pymodaq_plugins_template
    :alt: Documentation Status
 
 .. image:: https://github.com/PyMoDAQ/pymodaq_plugins_template/workflows/Upload%20Python%20Package/badge.svg
-   :target: https://github.com/PyMoDAQ/pymodaq_plugins_template
+   :target: https://github.com/PyMoDAQ/pymodaq_plugins_modbus
    :alt: Publication Status
 
 .. image:: https://github.com/PyMoDAQ/pymodaq_plugins_template/actions/workflows/Test.yml/badge.svg
-    :target: https://github.com/PyMoDAQ/pymodaq_plugins_template/actions/workflows/Test.yml
+    :target: https://github.com/PyMoDAQ/pymodaq_plugins_modbus/actions/workflows/Test.yml
 
 
 Use this template to create a repository on your account and start the development of your own PyMoDAQ plugin!
@@ -45,6 +45,7 @@ Instruments
 ===========
 
 Below is the list of instruments included in this plugin
+CellKraft ESeries
 
 Actuators
 +++++++++
