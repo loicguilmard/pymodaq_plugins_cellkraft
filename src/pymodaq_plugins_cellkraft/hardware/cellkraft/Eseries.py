@@ -1,7 +1,7 @@
 from pymodaq.utils.logger import set_logger, get_module_name
 logger = set_logger(get_module_name(__file__))
 
-from pymodaq_plugins_modbus.hardware.tcpmodbus import SyncModBusInstrument
+from pymodaq_plugins_cellkraft.hardware.tcpmodbus import SyncModBusInstrument
 
     # WRITE
     #
@@ -60,7 +60,7 @@ Eseries_Config = {
                 "type": int,
                 "read_address": 6518,
                 "write_address": 9310,
-                "authorized_writevalue": range(0, 25, 0.1),
+                "authorized_writevalue": [value/10 for value in range(0, 250, 1)],
                 "default_writevalue": 105,
                 "scaling": 10
                 },
