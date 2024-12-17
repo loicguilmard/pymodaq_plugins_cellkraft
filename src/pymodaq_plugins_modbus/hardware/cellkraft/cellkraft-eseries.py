@@ -133,10 +133,11 @@ class CellKraftE1500Drivers:
 
         :param value: human-readable equivalent of the 3 allowed values (0 auto, 1 manual, 2 prime) defaulting to auto
         """
-        self.registers["PumpSetMode"] = {
-            "register": Eseries_Config["Pump"]["write_address"],
-            "mode": "write"
-        }
+        if not self.registers["PumpSetMode"]:
+            self.registers["PumpSetMode"] = {
+                "register": Eseries_Config["Pump"]["write_address"],
+                "mode": "write"
+            }
         order: int
         match value:
             case "auto":
@@ -159,10 +160,11 @@ class CellKraftE1500Drivers:
 
         :param value: int °C
         """
-        self.registers["SP_SteamT"] = {
-            "register": Eseries_Config["Steam"]["write_address"],
-            "mode": "write"
-        }
+        if not self.registers["SP_SteamT"]:
+            self.registers["SP_SteamT"] = {
+                "register": Eseries_Config["Steam"]["write_address"],
+                "mode": "write"
+            }
         if isinstance(temperature, int):
             try:
 
@@ -179,11 +181,12 @@ class CellKraftE1500Drivers:
 
         :param relativehumidity: int% relative humdity
         """
-        self.registers["RH"] = {
-            "register": Eseries_Config["Air"]["write_address"],
-            "mode": "write",
-            "scaling": Eseries_Config["Air"]["scaling"]
-        }
+        if not self.registers["RH"]:
+            self.registers["RH"] = {
+                "register": Eseries_Config["Air"]["write_address"],
+                "mode": "write",
+                "scaling": Eseries_Config["Air"]["scaling"]
+            }
         if isinstance(relativehumidity, int):
             try:
                 self.instr.write(self.registers["RH"]["register"],
@@ -199,11 +202,12 @@ class CellKraftE1500Drivers:
 
         :param flow:
         """
-        self.registers["SP_Flow"] = {
-            "register": Eseries_Config["Flow"]["write_address"],
-            "mode": "write",
-            "scaling": Eseries_Config["Flow"]["scaling"]
-        }
+        if not self.registers["SP_Flow"]:
+            self.registers["SP_Flow"] = {
+                "register": Eseries_Config["Flow"]["write_address"],
+                "mode": "write",
+                "scaling": Eseries_Config["Flow"]["scaling"]
+            }
         if isinstance(flow, int):
             try:
 
@@ -221,10 +225,11 @@ class CellKraftE1500Drivers:
         :param int: tube temperature setpoint
         :return:
         """
-        self.registers["SP_Tube_Temp"] = {
-            "register": Eseries_Config["Tube"]["write_address"],
-            "mode": "write"
-        }
+        if not self.registers["SP_Tube_Temp"]:
+            self.registers["SP_Tube_Temp"] = {
+                "register": Eseries_Config["Tube"]["write_address"],
+                "mode": "write"
+            }
         if isinstance(temperature, int):
             try:
 
@@ -241,11 +246,12 @@ class CellKraftE1500Drivers:
 
         :return: temperature int °C
         """
-        self.registers["Get_Steam_T"] = {
-            "register": Eseries_Config["Steam"]["read_address"],
-            "mode": "read",
-            "scaling": Eseries_Config["Steam"]["readscaling"]
-        }
+        if not self.registers["Get_Steam_T"]:
+            self.registers["Get_Steam_T"] = {
+                "register": Eseries_Config["Steam"]["read_address"],
+                "mode": "read",
+                "scaling": Eseries_Config["Steam"]["readscaling"]
+            }
         ReadResult = self.instr.read(self.registers["Get_Steam_T"]["register"])
         if isinstance(Exception, ReadResult):
             raise ReadResult
@@ -258,11 +264,12 @@ class CellKraftE1500Drivers:
 
         :return: int %
         """
-        self.registers["Get_Air_H"] = {
-            "register": Eseries_Config["Air"]["read_address"],
-            "mode": "read",
-            "scaling": Eseries_Config["Air"]["scaling"]
-        }
+        if not self.registers["Get_Air_H"]:
+            self.registers["Get_Air_H"] = {
+                "register": Eseries_Config["Air"]["read_address"],
+                "mode": "read",
+                "scaling": Eseries_Config["Air"]["scaling"]
+            }
         ReadResult = self.instr.read(self.registers["Get_Air_H"]["register"])
         if isinstance(Exception, ReadResult):
             raise ReadResult
@@ -275,11 +282,12 @@ class CellKraftE1500Drivers:
 
         :return: int %
         """
-        self.registers["Get_Flow"] = {
-            "register": Eseries_Config["Flow"]["read_address"],
-            "mode": "read",
-            "scaling": Eseries_Config["Flow"]["scaling"]
-        }
+        if not self.registers["Get_Flow"]:
+            self.registers["Get_Flow"] = {
+                "register": Eseries_Config["Flow"]["read_address"],
+                "mode": "read",
+                "scaling": Eseries_Config["Flow"]["scaling"]
+            }
         ReadResult = self.instr.read(self.registers["Get_Flow"]["register"])
         if isinstance(Exception, ReadResult):
             raise ReadResult
@@ -292,11 +300,12 @@ class CellKraftE1500Drivers:
 
         :return: int Bar
         """
-        self.registers["Get_Pressure"] = {
-            "register": Eseries_Config["Pressure"]["read_address"],
-            "mode": "read",
-            "scaling": Eseries_Config["Pressure"]["readscaling"]
-        }
+        if not self.registers["Get_Pressure"]:
+            self.registers["Get_Pressure"] = {
+                "register": Eseries_Config["Pressure"]["read_address"],
+                "mode": "read",
+                "scaling": Eseries_Config["Pressure"]["readscaling"]
+            }
         ReadResult = self.instr.read(self.registers["Get_Pressure"]["register"])
         if isinstance(Exception, ReadResult):
             raise ReadResult
@@ -309,11 +318,12 @@ class CellKraftE1500Drivers:
 
         :return: int °C
         """
-        self.registers["Get_Tube_T"] = {
-            "register": Eseries_Config["Tube"]["read_address"],
-            "mode": "read",
-            "scaling": Eseries_Config["Tube"]["readscaling"]
-        }
+        if not self.registers["Get_Tube_T"]:
+            self.registers["Get_Tube_T"] = {
+                "register": Eseries_Config["Tube"]["read_address"],
+                "mode": "read",
+                "scaling": Eseries_Config["Tube"]["readscaling"]
+            }
         ReadResult = self.instr.read(self.registers["Get_Tube_T"]["register"])
         if isinstance(Exception, ReadResult):
             raise ReadResult
