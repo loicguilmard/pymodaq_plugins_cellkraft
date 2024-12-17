@@ -23,66 +23,68 @@ from pymodaq_plugins_modbus.hardware.tcpmodbus import SyncModBusInstrument
     # turn down => write 0 to register 9310
     # read status 6518
 
-Eseries_Config= {
-        "general": {
-            "scaling_default": 1,
-            },
-        "Pump": {
-            "reference": "Pump",
-            "write_address": 9107,
-            "authorized_writevalue": [0, 1, 2],
-            "default_writevalue": 0,
-            },
-        "Steam" : {
-            "reference": "Steam",
-            "type": int,
-            "unit": "C",
-            "read_address": 4148,
-            "readscaling": 10,
-            "write_address": 9300,
-            "authorized_writevalue": range(0,200,1),
-            "default_writevalue": 0
-            },
-        "Air": {
-            "reference": "RH",
-            "unit": "%",
-            "type": int,
-            "read_address": 4628,
-            "write_address": 9240,
-            "authorized_writevalue": range(0, 105, 1),
-            "default_writevalue": 105,
-            "scaling": 10
-            },
-        "Flow": {
-            "reference": "Flow",
-            "unit": "g/min",
-            "type": int,
-            "read_address": 6518,
-            "write_address": 9310,
-            "authorized_writevalue": range(0, 25, 0.1),
-            "default_writevalue": 105,
-            "scaling": 10
-            },
-        "Tube": {
-            "reference": "Tube",
-            "unit": "C",
-            "type": int,
-            "read_address": 4468,
-            "readscaling": 10,
-            "write_address": 9355,
-            "authorized_writevalue": range(0, 200, 1),
-            "default_writevalue": 105
-            },
-        "Pressure": {
-            "reference": "Pressure",
-            "unit": "Bar",
-            "type": int,
-            "read_address": 5268,
-            "readscaling": 100
-            #"write_address": 9355,
-            #"authorized_writevalue": range(0, 200, 1),
-            #"default_writevalue": 105
-            },
+Eseries_Config = {
+        1500: {
+            "general": {
+                "scaling_default": 1,
+                },
+            "Pump": {
+                "reference": "Pump",
+                "write_address": 9107,
+                "authorized_writevalue": [0, 1, 2],
+                "default_writevalue": 0,
+                },
+            "Steam": {
+                "reference": "Steam",
+                "type": int,
+                "unit": "C",
+                "read_address": 4148,
+                "readscaling": 10,
+                "write_address": 9300,
+                "authorized_writevalue": range(0, 200, 1),
+                "default_writevalue": 0
+                },
+            "Air": {
+                "reference": "RH",
+                "unit": "%",
+                "type": int,
+                "read_address": 4628,
+                "write_address": 9240,
+                "authorized_writevalue": range(0, 105, 1),
+                "default_writevalue": 105,
+                "scaling": 10
+                },
+            "Flow": {
+                "reference": "Flow",
+                "unit": "g/min",
+                "type": int,
+                "read_address": 6518,
+                "write_address": 9310,
+                "authorized_writevalue": range(0, 25, 0.1),
+                "default_writevalue": 105,
+                "scaling": 10
+                },
+            "Tube": {
+                "reference": "Tube",
+                "unit": "C",
+                "type": int,
+                "read_address": 4468,
+                "readscaling": 10,
+                "write_address": 9355,
+                "authorized_writevalue": range(0, 200, 1),
+                "default_writevalue": 105
+                },
+            "Pressure": {
+                "reference": "Pressure",
+                "unit": "Bar",
+                "type": int,
+                "read_address": 5268,
+                "readscaling": 100
+                # "write_address": 9355,
+                # "authorized_writevalue": range(0, 200, 1),
+                # "default_writevalue": 105
+                },
+            }
         }
 
 def registerfactory(reference, mode):
@@ -127,6 +129,13 @@ class CellKraftE1500Drivers:
         """
         self.SP_Flow(0)
 
+    def close(self):
+        """Close connection
+
+        :return:
+        """
+        self.instr.close()
+
     @registerfactory("pump", "write")
     def PumpSetMode(self, value: str = "auto"):
         """Writing the pump mode
@@ -135,7 +144,7 @@ class CellKraftE1500Drivers:
         """
         if not self.registers["PumpSetMode"]:
             self.registers["PumpSetMode"] = {
-                "register": Eseries_Config["Pump"]["write_address"],
+                "register": Eseries_Config[1500]["Pump"]["write_address"],
                 "mode": "write"
             }
         order: int
@@ -162,7 +171,7 @@ class CellKraftE1500Drivers:
         """
         if not self.registers["SP_SteamT"]:
             self.registers["SP_SteamT"] = {
-                "register": Eseries_Config["Steam"]["write_address"],
+                "register": Eseries_Config[1500]["Steam"]["write_address"],
                 "mode": "write"
             }
         if isinstance(temperature, int):
@@ -183,9 +192,9 @@ class CellKraftE1500Drivers:
         """
         if not self.registers["RH"]:
             self.registers["RH"] = {
-                "register": Eseries_Config["Air"]["write_address"],
+                "register": Eseries_Config[1500]["Air"]["write_address"],
                 "mode": "write",
-                "scaling": Eseries_Config["Air"]["scaling"]
+                "scaling": Eseries_Config[1500]["Air"]["scaling"]
             }
         if isinstance(relativehumidity, int):
             try:
@@ -204,9 +213,9 @@ class CellKraftE1500Drivers:
         """
         if not self.registers["SP_Flow"]:
             self.registers["SP_Flow"] = {
-                "register": Eseries_Config["Flow"]["write_address"],
+                "register": Eseries_Config[1500]["Flow"]["write_address"],
                 "mode": "write",
-                "scaling": Eseries_Config["Flow"]["scaling"]
+                "scaling": Eseries_Config[1500]["Flow"]["scaling"]
             }
         if isinstance(flow, int):
             try:
@@ -227,7 +236,7 @@ class CellKraftE1500Drivers:
         """
         if not self.registers["SP_Tube_Temp"]:
             self.registers["SP_Tube_Temp"] = {
-                "register": Eseries_Config["Tube"]["write_address"],
+                "register": Eseries_Config[1500]["Tube"]["write_address"],
                 "mode": "write"
             }
         if isinstance(temperature, int):
@@ -248,9 +257,9 @@ class CellKraftE1500Drivers:
         """
         if not self.registers["Get_Steam_T"]:
             self.registers["Get_Steam_T"] = {
-                "register": Eseries_Config["Steam"]["read_address"],
+                "register": Eseries_Config[1500]["Steam"]["read_address"],
                 "mode": "read",
-                "scaling": Eseries_Config["Steam"]["readscaling"]
+                "scaling": Eseries_Config[1500]["Steam"]["readscaling"]
             }
         ReadResult = self.instr.read(self.registers["Get_Steam_T"]["register"])
         if isinstance(Exception, ReadResult):
@@ -266,9 +275,9 @@ class CellKraftE1500Drivers:
         """
         if not self.registers["Get_Air_H"]:
             self.registers["Get_Air_H"] = {
-                "register": Eseries_Config["Air"]["read_address"],
+                "register": Eseries_Config[1500]["Air"]["read_address"],
                 "mode": "read",
-                "scaling": Eseries_Config["Air"]["scaling"]
+                "scaling": Eseries_Config[1500]["Air"]["scaling"]
             }
         ReadResult = self.instr.read(self.registers["Get_Air_H"]["register"])
         if isinstance(Exception, ReadResult):
@@ -284,9 +293,9 @@ class CellKraftE1500Drivers:
         """
         if not self.registers["Get_Flow"]:
             self.registers["Get_Flow"] = {
-                "register": Eseries_Config["Flow"]["read_address"],
+                "register": Eseries_Config[1500]["Flow"]["read_address"],
                 "mode": "read",
-                "scaling": Eseries_Config["Flow"]["scaling"]
+                "scaling": Eseries_Config[1500]["Flow"]["scaling"]
             }
         ReadResult = self.instr.read(self.registers["Get_Flow"]["register"])
         if isinstance(Exception, ReadResult):
@@ -302,9 +311,9 @@ class CellKraftE1500Drivers:
         """
         if not self.registers["Get_Pressure"]:
             self.registers["Get_Pressure"] = {
-                "register": Eseries_Config["Pressure"]["read_address"],
+                "register": Eseries_Config[1500]["Pressure"]["read_address"],
                 "mode": "read",
-                "scaling": Eseries_Config["Pressure"]["readscaling"]
+                "scaling": Eseries_Config[1500]["Pressure"]["readscaling"]
             }
         ReadResult = self.instr.read(self.registers["Get_Pressure"]["register"])
         if isinstance(Exception, ReadResult):
@@ -320,9 +329,9 @@ class CellKraftE1500Drivers:
         """
         if not self.registers["Get_Tube_T"]:
             self.registers["Get_Tube_T"] = {
-                "register": Eseries_Config["Tube"]["read_address"],
+                "register": Eseries_Config[1500]["Tube"]["read_address"],
                 "mode": "read",
-                "scaling": Eseries_Config["Tube"]["readscaling"]
+                "scaling": Eseries_Config[1500]["Tube"]["readscaling"]
             }
         ReadResult = self.instr.read(self.registers["Get_Tube_T"]["register"])
         if isinstance(Exception, ReadResult):

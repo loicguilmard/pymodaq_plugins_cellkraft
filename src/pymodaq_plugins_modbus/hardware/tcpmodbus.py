@@ -15,6 +15,12 @@ class SyncModBusInstrument:
         self.modbus = ModbusTcpClient(self.host)
         self.registerdict = {}
 
+    def close(self):
+        """End the connection
+        """
+        self.modbus.close()
+        self.connected = False
+
     def write(self, register, value):
         """
 
