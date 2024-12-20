@@ -2,7 +2,7 @@ from pymodaq.utils.logger import set_logger, get_module_name
 logger = set_logger(get_module_name(__file__))
 
 from pymodaq_plugins_cellkraft.hardware.tcpmodbus import SyncModBusInstrument
-
+from enum import IntEnum
     # WRITE
     #
     # pump control : register 9107 value [0 auto 1 manual 2 prime] default 1
@@ -23,63 +23,88 @@ from pymodaq_plugins_cellkraft.hardware.tcpmodbus import SyncModBusInstrument
     # turn down => write 0 to register 9310
     # read status 6518
 
+class Pump(IntEnum):
+    write_address = 9107
+    mode_auto = 0
+    mode_manual = 1
+    mode_prime = 2
+    default_mode = mode_auto
+    default_write_value = default_mode
+
+
+class Steam(IntEnum):
+    read_address = 4148
+    write_address = 9300
+    default_writevalue = 0
+    read_scaling = 10
+    write_scaling = 1
+
+
+class Air(IntEnum):
+    read_address = 4628
+    write_address = 9240
+    default_writevalue = 105
+    scaling = 10
+    read_scaling = scaling
+    write_scaling = scaling
+
+class Flow(IntEnum):
+    read_address = 6518
+    write_address = 9310
+    default_writevalue = 105
+    scaling = 10
+    read_scaling = scaling
+    write_scaling = scaling
+
+class Tube(IntEnum):
+    read_address = 4468
+    read_scaling = 10
+    write_address = 9355
+    write_scaling = 10
+    default_writevalue = 105
+
+class Pressure(IntEnum):
+    read_address =  5268
+    read_scaling = 100
+
+
 Eseries_Config = {
         1500: {
             "general": {
                 "scaling_default": 1,
                 },
-            "Pump": {
-                "reference": "Pump",
-                "write_address": 9107,
+            Pump.__name__: {
+                "reference": Pump,
                 "authorized_writevalue": [0, 1, 2],
-                "default_writevalue": 0,
                 },
-            "Steam": {
-                "reference": "Steam",
+            Steam.__name__: {
+                "reference": Steam,
                 "type": int,
                 "unit": "C",
-                "read_address": 4148,
-                "readscaling": 10,
-                "write_address": 9300,
                 "authorized_writevalue": range(0, 200, 1),
-                "default_writevalue": 0
                 },
-            "Air": {
-                "reference": "RH",
+            Air.__name__: {
+                "reference": Air,
                 "unit": "%",
                 "type": int,
-                "read_address": 4628,
-                "write_address": 9240,
                 "authorized_writevalue": range(0, 105, 1),
-                "default_writevalue": 105,
-                "scaling": 10
                 },
-            "Flow": {
-                "reference": "Flow",
+            Flow.__name__: {
+                "reference": Flow,
                 "unit": "g/min",
                 "type": int,
-                "read_address": 6518,
-                "write_address": 9310,
                 "authorized_writevalue": [value/10 for value in range(0, 250, 1)],
-                "default_writevalue": 105,
-                "scaling": 10
                 },
-            "Tube": {
-                "reference": "Tube",
+            Tube.__name__: {
+                "reference": Tube,
                 "unit": "C",
                 "type": int,
-                "read_address": 4468,
-                "readscaling": 10,
-                "write_address": 9355,
                 "authorized_writevalue": range(0, 200, 1),
-                "default_writevalue": 105
                 },
-            "Pressure": {
-                "reference": "Pressure",
+            Pressure.__name__: {
+                "reference": Pressure,
                 "unit": "Bar",
                 "type": int,
-                "read_address": 5268,
-                "readscaling": 100
                 # "write_address": 9355,
                 # "authorized_writevalue": range(0, 200, 1),
                 # "default_writevalue": 105
@@ -106,7 +131,7 @@ class CellKraftE1500Drivers:
     Relies on a custom tcpmodules based on pymodbus (source : https://github.com/pymodbus-dev/pymodbus
     documentation : https://pymodbus.readthedocs.io/en/latest/)
     """
-    def __init__(self, host):
+    def __init__(self, host, config = None):
         """Initialize the Steam Generator driver
 
         :param host: hostname or ip adress
@@ -115,6 +140,93 @@ class CellKraftE1500Drivers:
         self.host = host
         self.registers = {}
         self.init = False
+
+        if config is None:
+            self.config = Eseries_Config
+        else:
+            self.config = config
+
+        self.ini_register(self.config)
+
+    def ini_register(self, config_dict=None):
+        """
+        Initialise the register to expose the method/hardware parameters
+        :param dict: Manual Configuration dictionary feeding should be self.config
+        """
+
+        if config_dict is None:
+            if self.config is None:
+                config_dict = Eseries_Config
+            else:
+                config_dict = self.config
+
+        self.registers["PumpSetMode"] = {
+            "method": self.PumpSetMode,
+            "reference": config_dict[1500]["Pump"]["reference"],
+            "register": config_dict[1500]["Pump"]["reference"].write_address.value,
+            "mode": "write"
+        }
+        self.registers["SP_SteamT"] = {
+            "method": self.SP_SteamT,
+            "reference": config_dict[1500]["Steam"]["reference"],
+            "register": config_dict[1500]["Steam"].write_address.value,
+            "mode": "write"
+        }
+        self.registers["RH"] = {
+            "method": self.RH,
+            "reference": config_dict[1500]["Air"]["reference"],
+            "register": config_dict[1500]["Air"].write_address.value,
+            "mode": "write",
+            "scaling": config_dict[1500]["Air"].scaling.value
+        }
+        self.registers["SP_Flow"] = {
+            "method": self.SP_Flow,
+            "reference": config_dict[1500]["Flow"]["reference"],
+            "register": config_dict[1500]["Flow"].write_address.value,
+            "mode": "write",
+            "scaling": config_dict[1500]["Flow"].scaling.value
+        }
+        self.registers["SP_Tube_Temp"] = {
+            "method": self.SP_Tube_Temp,
+            "reference": config_dict[1500]["Tube"]["reference"],
+            "register": config_dict[1500]["Tube"].write_address.value,
+            "mode": "write"
+        }
+        self.registers["Get_Steam_T"] = {
+            "method": self.Get_Steam_T,
+            "reference": config_dict[1500]["Steam"]["reference"],
+            "register": config_dict[1500]["Steam"].read_address.value,
+            "mode": "read",
+            "scaling": config_dict[1500]["Steam"].read_scaling.value
+        }
+        self.registers["Get_Air_H"] = {
+            "method": self.Get_Air_H,
+            "reference": config_dict[1500]["Air"]["reference"],
+            "register": config_dict[1500]["Air"].read_address.value,
+            "mode": "read",
+            "scaling": config_dict[1500]["Air"].read_scaling.value
+        }
+        self.registers["Get_Flow"] = {
+            "method": self.Get_Flow,
+            "reference": config_dict[1500]["Flow"]["reference"],
+            "register": config_dict[1500]["Flow"].read_scaling.value,
+            "mode": "read",
+            "scaling": config_dict[1500]["Flow"].read_scaling.value
+        }
+        self.registers["Get_Pressure"] = {
+            "method": self.Get_Pressure,
+            "reference": config_dict[1500]["Pressure"]["reference"],
+            "register": config_dict[1500]["Pressure"].read_scaling.value,
+            "mode": "read",
+            "scaling": config_dict[1500]["Pressure"].read_scaling.value
+        }
+        self.registers["Get_Tube_T"] = {
+            "method": self.Get_Tube_T,
+            "reference": config_dict[1500]["Tube"]["reference"],
+            "register": config_dict[1500]["Tube"].read_scaling.value,
+            "mode": "read",
+            "scaling": config_dict[1500]["Tube"].read_scaling.value
+        }
 
     def init_hardware(self):
         """Connect and initialize the Steam Generator
@@ -136,44 +248,37 @@ class CellKraftE1500Drivers:
         """
         self.instr.close()
 
-    @registerfactory("pump", "write")
+    @registerfactory("Pump", "write")
     def PumpSetMode(self, value: str = "auto"):
         """Writing the pump mode
 
         :param value: human-readable equivalent of the 3 allowed values (0 auto, 1 manual, 2 prime) defaulting to auto
         """
-        if not self.registers["PumpSetMode"]:
-            self.registers["PumpSetMode"] = {
-                "register": Eseries_Config[1500]["Pump"]["write_address"],
-                "mode": "write"
-            }
+
         order: int
         match value:
             case "auto":
-                order = 0
+                order = Pump.mode_auto.value
             case "manual":
-                order = 1
+                order = Pump.mode_manual.value
             case "prime":
-                order = 2
+                order = Pump.mode_prime.value
             case _:
-                order = 0
+                order = Pump.default_mode.value
         try:
             self.instr.write(self.registers["PumpSetMode"]["register"],
                              order)
         except Exception as e:
             raise (Exception, f"error in {self.__qualname__}")
 
-    @registerfactory("steam", "write")
+    @registerfactory("Steam", "write")
     def SP_SteamT(self, temperature: int=10):
         """Set the SP Steam temperature in °C
 
-        :param value: int °C
+        :param temperature: int in °C
+        :return:
         """
-        if not self.registers["SP_SteamT"]:
-            self.registers["SP_SteamT"] = {
-                "register": Eseries_Config[1500]["Steam"]["write_address"],
-                "mode": "write"
-            }
+
         if isinstance(temperature, int):
             try:
 
@@ -184,18 +289,13 @@ class CellKraftE1500Drivers:
         else:
             raise (TypeError, f"type(temperature) passed to {self.__qualname__}.SP_vapT must be an int") # add {self.__class__.__name__}. ?
 
-    @registerfactory("air", "write")
+    @registerfactory("Air", "write")
     def RH(self, relativehumidity: int=105):
         """Set the relative humidity in %
 
         :param relativehumidity: int% relative humdity
         """
-        if not self.registers["RH"]:
-            self.registers["RH"] = {
-                "register": Eseries_Config[1500]["Air"]["write_address"],
-                "mode": "write",
-                "scaling": Eseries_Config[1500]["Air"]["scaling"]
-            }
+
         if isinstance(relativehumidity, int):
             try:
                 self.instr.write(self.registers["RH"]["register"],
@@ -205,18 +305,13 @@ class CellKraftE1500Drivers:
         else:
             raise (TypeError, f"type(relativehumidity) passed to {self.__qualname__}.RH() must but int")
 
-    @registerfactory("flow", "write")
+    @registerfactory("Flow", "write")
     def SP_Flow(self, flow: int):
         """Set the flow in g/min
 
         :param flow:
         """
-        if not self.registers["SP_Flow"]:
-            self.registers["SP_Flow"] = {
-                "register": Eseries_Config[1500]["Flow"]["write_address"],
-                "mode": "write",
-                "scaling": Eseries_Config[1500]["Flow"]["scaling"]
-            }
+
         if isinstance(flow, int):
             try:
 
@@ -227,21 +322,16 @@ class CellKraftE1500Drivers:
         else:
             raise (TypeError, f"type(flow) passed to {self.__qualname__}.SP_Flow() must but int")
 
-    @registerfactory("tube", "write")
+    @registerfactory("Tube", "write")
     def SP_Tube_Temp(self, temperature: int):
         """Set the tube temperature
 
         :param int: tube temperature setpoint
         :return:
         """
-        if not self.registers["SP_Tube_Temp"]:
-            self.registers["SP_Tube_Temp"] = {
-                "register": Eseries_Config[1500]["Tube"]["write_address"],
-                "mode": "write"
-            }
+
         if isinstance(temperature, int):
             try:
-
                 self.instr.write(self.registers["SP_Tube_Temp"]["register"],
                                  temperature)
             except Exception as e:
@@ -255,12 +345,7 @@ class CellKraftE1500Drivers:
 
         :return: temperature int °C
         """
-        if not self.registers["Get_Steam_T"]:
-            self.registers["Get_Steam_T"] = {
-                "register": Eseries_Config[1500]["Steam"]["read_address"],
-                "mode": "read",
-                "scaling": Eseries_Config[1500]["Steam"]["readscaling"]
-            }
+
         ReadResult = self.instr.read(self.registers["Get_Steam_T"]["register"])
         if isinstance(Exception, ReadResult):
             raise ReadResult
@@ -273,12 +358,7 @@ class CellKraftE1500Drivers:
 
         :return: int %
         """
-        if not self.registers["Get_Air_H"]:
-            self.registers["Get_Air_H"] = {
-                "register": Eseries_Config[1500]["Air"]["read_address"],
-                "mode": "read",
-                "scaling": Eseries_Config[1500]["Air"]["scaling"]
-            }
+
         ReadResult = self.instr.read(self.registers["Get_Air_H"]["register"])
         if isinstance(Exception, ReadResult):
             raise ReadResult
@@ -291,12 +371,7 @@ class CellKraftE1500Drivers:
 
         :return: int %
         """
-        if not self.registers["Get_Flow"]:
-            self.registers["Get_Flow"] = {
-                "register": Eseries_Config[1500]["Flow"]["read_address"],
-                "mode": "read",
-                "scaling": Eseries_Config[1500]["Flow"]["scaling"]
-            }
+
         ReadResult = self.instr.read(self.registers["Get_Flow"]["register"])
         if isinstance(Exception, ReadResult):
             raise ReadResult
@@ -309,12 +384,7 @@ class CellKraftE1500Drivers:
 
         :return: int Bar
         """
-        if not self.registers["Get_Pressure"]:
-            self.registers["Get_Pressure"] = {
-                "register": Eseries_Config[1500]["Pressure"]["read_address"],
-                "mode": "read",
-                "scaling": Eseries_Config[1500]["Pressure"]["readscaling"]
-            }
+
         ReadResult = self.instr.read(self.registers["Get_Pressure"]["register"])
         if isinstance(Exception, ReadResult):
             raise ReadResult
@@ -327,14 +397,13 @@ class CellKraftE1500Drivers:
 
         :return: int °C
         """
-        if not self.registers["Get_Tube_T"]:
-            self.registers["Get_Tube_T"] = {
-                "register": Eseries_Config[1500]["Tube"]["read_address"],
-                "mode": "read",
-                "scaling": Eseries_Config[1500]["Tube"]["readscaling"]
-            }
+
         ReadResult = self.instr.read(self.registers["Get_Tube_T"]["register"])
         if isinstance(Exception, ReadResult):
             raise ReadResult
         else:
             return ReadResult.registers[0]/self.registers["Get_Tube_T"]["scaling"]
+
+if __name__ == "__main__":
+    test = CellKraftE1500Drivers("cet-cc01-gen01.insa-lyon.fr")
+    print(test.registers["PumpSetMode"])
