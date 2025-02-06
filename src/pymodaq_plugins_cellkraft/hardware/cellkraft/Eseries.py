@@ -348,7 +348,7 @@ class CellKraftE1500Drivers:
         """
 
         ReadResult = self.instr.read(self.registers["Get_Steam_T"]["register"])
-        if isinstance(Exception, ReadResult):
+        if isinstance(ReadResult, Exception):
             raise ReadResult
         else:
             return ReadResult.registers[0]/self.registers["Get_Steam_T"]["readscaling"]
@@ -361,12 +361,12 @@ class CellKraftE1500Drivers:
         """
 
         ReadResult = self.instr.read(self.registers["Get_Air_H"]["register"])
-        if isinstance(Exception, ReadResult):
+        if isinstance(ReadResult, Exception):
             raise ReadResult
         else:
             return ReadResult.registers[0]/self.registers["Get_Air_H"]["scaling"]
 
-    @registerfactory("steam", "read")
+    # @registerfactory("steam", "read")
     def Get_Flow(self):
         """Get the air humidity
 
@@ -374,7 +374,7 @@ class CellKraftE1500Drivers:
         """
 
         ReadResult = self.instr.read(self.registers["Get_Flow"]["register"])
-        if isinstance(Exception, ReadResult):
+        if isinstance(ReadResult, Exception):
             raise ReadResult
         else:
             return ReadResult.registers[0]/self.registers["Get_Flow"]["scaling"]
@@ -387,7 +387,7 @@ class CellKraftE1500Drivers:
         """
 
         ReadResult = self.instr.read(self.registers["Get_Pressure"]["register"])
-        if isinstance(Exception, ReadResult):
+        if isinstance(ReadResult, Exception):
             raise ReadResult
         else:
             return ReadResult.registers[0]/self.registers["Get_Pressure"]["scaling"]
@@ -400,7 +400,7 @@ class CellKraftE1500Drivers:
         """
 
         ReadResult = self.instr.read(self.registers["Get_Tube_T"]["register"])
-        if isinstance(Exception, ReadResult):
+        if isinstance(ReadResult, Exception):
             raise ReadResult
         else:
             return ReadResult.registers[0]/self.registers["Get_Tube_T"]["scaling"]
