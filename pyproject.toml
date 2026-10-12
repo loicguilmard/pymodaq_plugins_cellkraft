@@ -12,8 +12,11 @@ package-url = 'https://github.com/PyMoDAQ/pymodaq_plugins_cellkraft'
 name = "pymodaq_plugins_cellkraft"
 description = 'Plugin for cellkraft instruments'
 dependencies = [
-    "pymodaq",
-    "pymodbus"
+    "pymodaq>=5.3.2",
+    "pymodaq_utils>=5.3.1",
+    "pymodaq_gui>=5.3.0",
+    "pymodaq_data>=5.3.0",
+    "pymodbus",
 ]
 
 authors = [
