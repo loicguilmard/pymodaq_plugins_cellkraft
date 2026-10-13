@@ -1,7 +1,7 @@
 from typing import Union, List, Dict
 from pymodaq_plugins_cellkraft import config
 from pymodaq.control_modules.move_utility_classes import DAQ_Move_base, comon_parameters_fun, DataActuatorType,\
-    DataActuator  # common set of parameters for all actuators
+    DataActuator, main  # common set of parameters for all actuators
 from pymodaq.utils.daq_utils import ThreadCommand  # object used to send info back to the main thread
 from pymodaq.utils.parameter import Parameter
 from pymodaq_plugins_cellkraft.hardware.cellkraft.Eseries import CellKraftE1500Drivers
@@ -41,11 +41,12 @@ class DAQ_Move_CellkraftE1500(DAQ_Move_base):
     display_units = true
 
     """
-    is_multiaxes = False
+    #TODO check if multiaxes work as intended
+    is_multiaxes = True
 
     _axis_names: Union[List[str], Dict[str, str]] = ['Flow', 'Steam_Temperature', 'Tube_Temperature', 'RH', 'Pressure']
-    _controller_units: Union[str, List[str]] = ['g/min', '°C', '°C', '%', 'bar']
-    _epsilon: Union[float, List[float]] = [0.1, 0.1, 0.1, 1, 1]
+    _controller_units: Union[str, List[str]] = ['g/min', 'degC', '°C', '%', 'bar']
+    _epsilons: Union[float, List[float]] = [0.1, 0.1, 0.1, 1, 1]
 
     data_actuator_type = DataActuatorType.DataActuator
 
@@ -54,7 +55,7 @@ class DAQ_Move_CellkraftE1500(DAQ_Move_base):
               {'title': 'Host:', 'name': 'host', 'type': 'str', 'value': config('Cellkraft', 'DEVICE01', 'host')},
               {'title': 'Write Limit:', 'name': 'limit', 'type': 'str', 'value': 'Nothing'},
               {'title': 'Info:', 'name': 'info', 'type': 'str', 'value': 'Nothing', 'readonly': True},
-              ] + comon_parameters_fun(is_multiaxes=is_multiaxes, axis_names=_axis_names, epsilon=_epsilon)
+              ] + comon_parameters_fun(is_multiaxes=is_multiaxes, axis_names=_axis_names, epsilon=_epsilons)
 
     # Information sur chaque actuateurs
     desc = {'Flow': "Lecture en 0.1 près, Ecriture en 0.1 près\n"
@@ -193,8 +194,8 @@ class DAQ_Move_CellkraftE1500(DAQ_Move_base):
         ----------
         value: (float) value of the relative target positioning
         """
-        value = self.check_bound(self.current_position + value) - self.current_position
-        self.target_value = value + self.current_position
+        value = self.check_bound(self.current_value + value) - self.current_value
+        self.target_value = value + self.current_value
         value = self.set_position_relative_with_scaling(value)
 
         self.move_value(value)
@@ -252,3 +253,6 @@ class DAQ_Move_CellkraftE1500(DAQ_Move_base):
         Pump is the only one that can be stopped, the other are just values that we change
         """
         pass
+
+if __name__ == '__main__':
+    main(__file__, True)

@@ -1,5 +1,5 @@
 from pymodaq.utils.data import DataFromPlugins, DataToExport
-from pymodaq.control_modules.viewer_utility_classes import DAQ_Viewer_base, comon_parameters
+from pymodaq.control_modules.viewer_utility_classes import DAQ_Viewer_base, comon_parameters, main
 from pymodaq.utils.parameter import Parameter
 from pymodaq_plugins_cellkraft.hardware.cellkraft.Eseries import CellKraftE1500Drivers
 
@@ -122,3 +122,6 @@ class DAQ_0DViewer_Pressure(DAQ_Viewer_base):
     def stop(self):
         """Stop the current grab hardware wise if necessary"""
         return ''
+
+if __name__ == '__main__':
+    main(__file__, True)
